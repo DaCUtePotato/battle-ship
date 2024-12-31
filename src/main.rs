@@ -204,17 +204,28 @@ fn get_player_input() -> (usize, usize) {
         io::stdin()
             .read_line(&mut input)
             .expect("Failed to read line");
-        let coordinates: Vec<usize> = input
+        let coordinates: Option<Vec<usize>> = input
             .trim()
             .split(',')
-            .map(|s| s.trim().parse().expect("Invalid input"))
+            .map(|s| s.trim().parse().ok())
             .collect();
-        if coordinates.len() == 2 && coordinates[0] < BOARD_SIZE && coordinates[1] < BOARD_SIZE {
-            return (coordinates[0], coordinates[1]);
+
+        if let Some(coordinates) = coordinates {
+            if coordinates.len() == 2 && coordinates[0] < BOARD_SIZE && coordinates[1] < BOARD_SIZE
+            {
+                return (coordinates[0], coordinates[1]);
+            } else {
+                print_error_message();
+            }
         } else {
-            println!("\x1b[1;31mInvalid input. Please enter row and column numbers separated by a comma.\x1b[0m");
+            print_error_message();
         }
     }
+}
+fn print_error_message() {
+    println!(
+        "\x1b[1;31mInvalid input. Please enter row and column numbers separated by a comma.\x1b[0m"
+    );
 }
 
 // Function to generate a random move for the opponent
