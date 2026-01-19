@@ -105,18 +105,18 @@ impl Board {
                         if hide_ships {
                             print!("   ");
                         } else {
-                            print!(" \u{25A1} "); // □ Water
+                            print!(" □ "); // □ Water
                         }
                     }
                     CellState::Ship => {
                         if hide_ships {
                             print!("   ");
                         } else {
-                            print!(" \u{25A0} ");
+                            print!(" ■ ");
                         }
                     }
-                    CellState::Hit => print!(" {} ", "\u{25CF}".red()),
-                    CellState::Miss => print!(" {} ", "\u{00B7}".cyan()),
+                    CellState::Hit => print!(" {} ", "●".red()),
+                    CellState::Miss => print!(" {} ", "·".cyan()),
                 }
             }
             println!();
