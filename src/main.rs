@@ -1,3 +1,4 @@
+use colored::Colorize;
 use rand::Rng;
 use std::io::{self, Write};
 
@@ -104,18 +105,18 @@ impl Board {
                         if hide_ships {
                             print!("   ");
                         } else {
-                            print!(" \u{25A1} "); // □ Water
+                            print!(" □ "); // □ Water
                         }
                     }
                     CellState::Ship => {
                         if hide_ships {
                             print!("   ");
                         } else {
-                            print!(" \u{25A0} ");
+                            print!(" ■ ");
                         }
                     }
-                    CellState::Hit => print!("\x1b[31m \u{25CF} \x1b[0m"),
-                    CellState::Miss => print!("\x1b[36m \u{00B7} \x1b[0m"),
+                    CellState::Hit => print!(" {} ", "●".red()),
+                    CellState::Miss => print!(" {} ", "·".cyan()),
                 }
             }
             println!();
@@ -151,16 +152,16 @@ fn main() {
         print!("\x1b[2J\x1b[1;1H");
 
         // Display the player's board and the opponent's board
-        println!("\x1b[1;37mYour Board:\x1b[0m");
+        println!("{}", "Your Board:".bold());
         player_board.display(false);
-        println!("\x1b[1;37mOpponent's Board:\x1b[0m");
+        println!("{}", "Opponent's Board:".bold());
         opponent_board.display(true);
         // Player's turn: prompt for input and process the firing result
         let (player_row, player_col) = get_player_input();
         let result = opponent_board.fire(player_row, player_col);
         match result {
-            CellState::Miss => println!("\x1b[36mYou missed!\x1b[0m"),
-            CellState::Hit => println!("\x1b[31mYou hit a ship!\x1b[0m"),
+            CellState::Miss => println!("{}", "You missed!".cyan()),
+            CellState::Hit => println!("{}", "You hit a ship!".red()),
             _ => (),
         }
         println!("Press Enter to continue...");
@@ -170,7 +171,12 @@ fn main() {
 
         // Check if all opponent ships have been sunk
         if opponent_board.is_game_over() {
-            println!("\x1b[1;32mCongratulations! You sank all of your opponent's ships!\x1b[0m");
+            println!(
+                "{}",
+                "Congratulations! You sank all of your opponent's ships!"
+                    .bold()
+                    .green()
+            );
             break;
         }
 
@@ -178,8 +184,8 @@ fn main() {
         let (opponent_row, opponent_col) = generate_opponent_move();
         let result = player_board.fire(opponent_row, opponent_col);
         match result {
-            CellState::Miss => println!("\x1b[36mOpponent missed!\x1b[0m"),
-            CellState::Hit => println!("\x1b[31mOpponent hit one of your ships!\x1b[0m"),
+            CellState::Miss => println!("{}", "Opponent missed!".cyan()),
+            CellState::Hit => println!("{}", "Opponent hit one of your ships!".red()),
             _ => (),
         }
         println!("Press Enter to continue...");
@@ -189,7 +195,10 @@ fn main() {
 
         // Check if all player ships have been sunk
         if player_board.is_game_over() {
-            println!("\x1b[1;31mOh no! All of your ships have been sunk!\x1b[0m");
+            println!(
+                "{}",
+                "Oh no! All of your ships have been sunk!".bold().red()
+            );
             break;
         }
     }
@@ -198,23 +207,37 @@ fn main() {
 // Function to get player input for firing
 fn get_player_input() -> (usize, usize) {
     loop {
-        print!("\x1b[1;37mEnter coordinates to fire (row, col): \x1b[0m");
+        print!("{}", "Enter coordinates to fire (row, col): ".bold());
         io::stdout().flush().unwrap();
         let mut input = String::new();
         io::stdin()
             .read_line(&mut input)
             .expect("Failed to read line");
-        let coordinates: Vec<usize> = input
+        let coordinates: Option<Vec<usize>> = input
             .trim()
             .split(',')
-            .map(|s| s.trim().parse().expect("Invalid input"))
+            .map(|s| s.trim().parse().ok())
             .collect();
-        if coordinates.len() == 2 && coordinates[0] < BOARD_SIZE && coordinates[1] < BOARD_SIZE {
-            return (coordinates[0], coordinates[1]);
+
+        if let Some(coordinates) = coordinates {
+            if coordinates.len() == 2 && coordinates[0] < BOARD_SIZE && coordinates[1] < BOARD_SIZE
+            {
+                return (coordinates[0], coordinates[1]);
+            } else {
+                print_error_message();
+            }
         } else {
-            println!("\x1b[1;31mInvalid input. Please enter row and column numbers separated by a comma.\x1b[0m");
+            print_error_message();
         }
     }
+}
+fn print_error_message() {
+    println!(
+        "{}",
+        "Invalid input. Please enter row and column numbers separated by a comma."
+            .bold()
+            .red()
+    );
 }
 
 // Function to generate a random move for the opponent
